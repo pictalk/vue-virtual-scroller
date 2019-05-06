@@ -6,26 +6,28 @@ export const props = {
 
   keyField: {
     type: String,
-    default: 'id',
+    default: "id",
   },
 
   direction: {
     type: String,
-    default: 'vertical',
-    validator: (value) => ['vertical', 'horizontal'].includes(value),
+    default: "vertical",
+    validator: value => ["vertical", "horizontal"].includes(value),
   },
 
   listTag: {
     type: String,
-    default: 'div',
+    default: "div",
   },
 
   itemTag: {
     type: String,
-    default: 'div',
+    default: "div",
   },
+};
+
+export function simpleArray() {
+  return this.items.length && typeof this.items[0] !== "object";
 }
 
-export function simpleArray () {
-  return this.items.length && typeof this.items[0] !== 'object'
-}
+export const rAF = window.requestAnimationFrame;

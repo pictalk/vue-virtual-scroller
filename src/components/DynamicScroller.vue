@@ -23,32 +23,32 @@
       />
     </template>
     <template slot="before">
-      <slot name="before" />
+      <slot name="before"/>
     </template>
     <template slot="after">
-      <slot name="after" />
+      <slot name="after"/>
     </template>
   </RecycleScroller>
 </template>
 
 <script>
-import RecycleScroller from './RecycleScroller.vue'
-import { props, simpleArray } from './common'
+import RecycleScroller from "./RecycleScroller.vue";
+import { props, simpleArray, rAF } from "./common";
 
 export default {
-  name: 'DynamicScroller',
+  name: "DynamicScroller",
 
   components: {
-    RecycleScroller,
+    RecycleScroller
   },
 
   inheritAttrs: false,
 
-  provide () {
+  provide() {
     return {
       vscrollData: this.vscrollData,
-      vscrollParent: this,
-    }
+      vscrollParent: this
+    };
   },
 
   props: {
@@ -56,140 +56,144 @@ export default {
 
     minItemSize: {
       type: [Number, String],
-      required: true,
-    },
+      required: true
+    }
   },
 
-  data () {
+  data() {
     return {
       vscrollData: {
         active: true,
         sizes: {},
         validSizes: {},
         keyField: this.keyField,
-        simpleArray: false,
-      },
-    }
+        simpleArray: false
+      }
+    };
   },
 
   computed: {
     simpleArray,
 
-    itemsWithSize () {
-      const result = []
-      const { items, keyField, simpleArray } = this
-      const sizes = this.vscrollData.sizes
+    itemsWithSize() {
+      const result = [];
+      const { items, keyField, simpleArray } = this;
+      const sizes = this.vscrollData.sizes;
       for (let i = 0; i < items.length; i++) {
-        const item = items[i]
-        const id = simpleArray ? i : item[keyField]
-        let size = sizes[id]
-        if (typeof size === 'undefined' && !this.$_undefinedMap[id]) {
+        const item = items[i];
+        const id = simpleArray ? i : item[keyField];
+        let size = sizes[id];
+        if (typeof size === "undefined" && !this.$_undefinedMap[id]) {
           // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-          this.$_undefinedSizes++
+          this.$_undefinedSizes++;
           // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-          this.$_undefinedMap[id] = true
-          size = 0
+          this.$_undefinedMap[id] = true;
+          size = 0;
         }
         result.push({
           item,
           id,
-          size,
-        })
+          size
+        });
       }
-      return result
+      return result;
     },
 
-    listeners () {
-      const listeners = {}
+    listeners() {
+      const listeners = {};
       for (const key in this.$listeners) {
-        if (key !== 'resize' && key !== 'visible') {
-          listeners[key] = this.$listeners[key]
+        if (key !== "resize" && key !== "visible") {
+          listeners[key] = this.$listeners[key];
         }
       }
-      return listeners
-    },
+      return listeners;
+    }
   },
 
   watch: {
-    items () {
-      this.forceUpdate(false)
+    items() {
+      this.forceUpdate(false);
     },
 
     simpleArray: {
-      handler (value) {
-        this.vscrollData.simpleArray = value
+      handler(value) {
+        this.vscrollData.simpleArray = value;
       },
-      immediate: true,
+      immediate: true
     },
 
-    direction (value) {
-      this.forceUpdate(true)
-    },
+    direction(value) {
+      this.forceUpdate(true);
+    }
   },
 
-  created () {
-    this.$_updates = []
-    this.$_undefinedSizes = 0
-    this.$_undefinedMap = {}
+  created() {
+    this.$_updates = [];
+    this.$_undefinedSizes = 0;
+    this.$_undefinedMap = {};
   },
 
-  activated () {
-    this.vscrollData.active = true
+  activated() {
+    this.vscrollData.active = true;
   },
 
-  deactivated () {
-    this.vscrollData.active = false
+  deactivated() {
+    this.vscrollData.active = false;
   },
 
   methods: {
-    onScrollerResize () {
-      const scroller = this.$refs.scroller
+    onScrollerResize() {
+      const scroller = this.$refs.scroller;
       if (scroller) {
-        this.forceUpdate()
+        this.forceUpdate();
       }
-      this.$emit('resize')
+      this.$emit("resize");
     },
 
-    onScrollerVisible () {
-      this.$emit('vscroll:update', { force: false })
-      this.$emit('visible')
+    onScrollerVisible() {
+      this.$emit("vscroll:update", { force: false });
+      this.$emit("visible");
     },
 
-    forceUpdate (clear = true) {
+    forceUpdate(clear = true) {
       if (clear || this.simpleArray) {
-        this.vscrollData.validSizes = {}
+        this.vscrollData.validSizes = {};
       }
-      this.$emit('vscroll:update', { force: true })
+      this.$emit("vscroll:update", { force: true });
     },
 
-    scrollToItem (index) {
-      const scroller = this.$refs.scroller
-      if (scroller) scroller.scrollToItem(index)
+    scrollToItem(index) {
+      const scroller = this.$refs.scroller;
+      if (scroller) scroller.scrollToItem(index);
     },
 
-    getItemSize (item, index = undefined) {
-      const id = this.simpleArray ? (index != null ? index : this.items.indexOf(item)) : item[this.keyField]
-      return this.vscrollData.sizes[id] || 0
+    getItemSize(item, index = undefined) {
+      const id = this.simpleArray
+        ? index != null
+          ? index
+          : this.items.indexOf(item)
+        : item[this.keyField];
+      return this.vscrollData.sizes[id] || 0;
     },
 
-    scrollToBottom () {
-      if (this.$_scrollingToBottom) return
-      this.$_scrollingToBottom = true
-      const el = this.$el
+    scrollToBottom() {
+      if (this.$_scrollingToBottom) return;
+      this.$_scrollingToBottom = true;
+      const el = this.$el;
       // Item is inserted to the DOM
       this.$nextTick(() => {
         // Item sizes are computed
         const cb = () => {
-          el.scrollTop = el.scrollHeight
+          el.scrollTop = el.scrollHeight;
           if (this.$_undefinedSizes === 0) {
-            this.$_scrollingToBottom = false
+            this.$_scrollingToBottom = false;
           } else {
-            requestAnimationFrame(cb)
+            rAF(cb);
           }
-        }
-        requestAnimationFrame(cb)
-      })
-    },
-  },
-}
+        };
+        rAF(cb);
+      });
+    }
+  }
+};
 </script>

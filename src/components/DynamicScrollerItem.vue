@@ -1,167 +1,178 @@
 <script>
 export default {
-  name: 'DynamicScrollerItem',
+  name: "DynamicScrollerItem",
 
-  inject: [
-    'vscrollData',
-    'vscrollParent',
-  ],
+  inject: ["vscrollData", "vscrollParent"],
 
   props: {
     item: {
-      required: true,
+      required: true
     },
 
     watchData: {
       type: Boolean,
-      default: false,
+      default: false
     },
 
     active: {
       type: Boolean,
-      required: true,
+      required: true
     },
 
     index: {
       type: Number,
-      default: undefined,
+      default: undefined
     },
 
     sizeDependencies: {
       type: [Array, Object],
-      default: null,
+      default: null
     },
 
     emitResize: {
       type: Boolean,
-      default: false,
+      default: false
     },
 
     tag: {
       type: String,
-      default: 'div',
-    },
+      default: "div"
+    }
   },
 
   computed: {
-    id () {
-      return this.vscrollData.simpleArray ? this.index : this.item[this.vscrollData.keyField]
+    id() {
+      return this.vscrollData.simpleArray
+        ? this.index
+        : this.item[this.vscrollData.keyField];
     },
 
-    size () {
-      return (this.vscrollData.validSizes[this.id] && this.vscrollData.sizes[this.id]) || 0
-    },
+    size() {
+      return (
+        (this.vscrollData.validSizes[this.id] &&
+          this.vscrollData.sizes[this.id]) ||
+        0
+      );
+    }
   },
 
   watch: {
-    watchData: 'updateWatchData',
+    watchData: "updateWatchData",
 
-    id () {
+    id() {
       if (!this.size) {
-        this.onDataUpdate()
+        this.onDataUpdate();
       }
     },
 
-    active (value) {
+    active(value) {
       if (value && this.$_pendingVScrollUpdate === this.id) {
-        this.updateSize()
+        this.updateSize();
       }
-    },
+    }
   },
 
-  created () {
-    if (this.$isServer) return
+  created() {
+    if (this.$isServer) return;
 
-    this.$_forceNextVScrollUpdate = null
-    this.updateWatchData()
+    this.$_forceNextVScrollUpdate = null;
+    this.updateWatchData();
 
     for (const k in this.sizeDependencies) {
-      this.$watch(() => this.sizeDependencies[k], this.onDataUpdate)
+      this.$watch(() => this.sizeDependencies[k], this.onDataUpdate);
     }
 
-    this.vscrollParent.$on('vscroll:update', this.onVscrollUpdate)
-    this.vscrollParent.$on('vscroll:update-size', this.onVscrollUpdateSize)
+    this.vscrollParent.$on("vscroll:update", this.onVscrollUpdate);
+    this.vscrollParent.$on("vscroll:update-size", this.onVscrollUpdateSize);
   },
 
-  mounted () {
+  mounted() {
     if (this.vscrollData.active) {
-      this.updateSize()
+      this.updateSize();
     }
   },
 
-  beforeDestroy () {
-    this.vscrollParent.$off('vscroll:update', this.onVscrollUpdate)
-    this.vscrollParent.$off('vscroll:update-size', this.onVscrollUpdateSize)
+  beforeDestroy() {
+    this.vscrollParent.$off("vscroll:update", this.onVscrollUpdate);
+    this.vscrollParent.$off("vscroll:update-size", this.onVscrollUpdateSize);
   },
 
   methods: {
-    updateSize () {
+    updateSize() {
       if (this.active && this.vscrollData.active) {
         if (this.$_pendingSizeUpdate !== this.id) {
-          this.$_pendingSizeUpdate = this.id
-          this.$_forceNextVScrollUpdate = null
-          this.$_pendingVScrollUpdate = null
+          this.$_pendingSizeUpdate = this.id;
+          this.$_forceNextVScrollUpdate = null;
+          this.$_pendingVScrollUpdate = null;
           if (this.active && this.vscrollData.active) {
-            this.computeSize(this.id)
+            this.computeSize(this.id);
           }
         }
       } else {
-        this.$_forceNextVScrollUpdate = this.id
+        this.$_forceNextVScrollUpdate = this.id;
       }
     },
 
-    getBounds () {
-      return this.$el.getBoundingClientRect()
+    getBounds() {
+      return this.$el.getBoundingClientRect();
     },
 
-    updateWatchData () {
+    updateWatchData() {
       if (this.watchData) {
-        this.$_watchData = this.$watch('data', () => {
-          this.onDataUpdate()
-        }, {
-          deep: true,
-        })
+        this.$_watchData = this.$watch(
+          "data",
+          () => {
+            this.onDataUpdate();
+          },
+          {
+            deep: true
+          }
+        );
       } else if (this.$_watchData) {
-        this.$_watchData()
-        this.$_watchData = null
+        this.$_watchData();
+        this.$_watchData = null;
       }
     },
 
-    onVscrollUpdate ({ force }) {
+    onVscrollUpdate({ force }) {
       if (!this.active && force) {
-        this.$_pendingVScrollUpdate = this.id
+        this.$_pendingVScrollUpdate = this.id;
       }
       if (this.$_forceNextVScrollUpdate === this.id || force || !this.size) {
-        this.updateSize()
+        this.updateSize();
       }
     },
 
-    onDataUpdate () {
-      this.updateSize()
+    onDataUpdate() {
+      this.updateSize();
     },
 
-    computeSize (id) {
+    computeSize(id) {
       this.$nextTick(() => {
         if (this.id === id) {
-          const bounds = this.getBounds()
-          const size = Math.round(this.vscrollParent.direction === 'vertical' ? bounds.height : bounds.width)
+          const bounds = this.getBounds();
+          const size = Math.round(
+            this.vscrollParent.direction === "vertical"
+              ? bounds.height
+              : bounds.width
+          );
           if (size && this.size !== size) {
             if (this.vscrollParent.$_undefinedMap[id]) {
-              this.vscrollParent.$_undefinedSizes--
-              this.vscrollParent.$_undefinedMap[id] = undefined
+              this.vscrollParent.$_undefinedSizes--;
+              this.vscrollParent.$_undefinedMap[id] = undefined;
             }
-            this.$set(this.vscrollData.sizes, this.id, size)
-            this.$set(this.vscrollData.validSizes, this.id, true)
-            if (this.emitResize) this.$emit('resize', this.id)
+            this.$set(this.vscrollData.sizes, this.id, size);
+            this.$set(this.vscrollData.validSizes, this.id, true);
+            if (this.emitResize) this.$emit("resize", this.id);
           }
         }
-        this.$_pendingSizeUpdate = null
-      })
-    },
+        this.$_pendingSizeUpdate = null;
+      });
+    }
   },
 
-  render (h) {
-    return h(this.tag, this.$slots.default)
-  },
-}
+  render(h) {
+    return h(this.tag, this.$slots.default);
+  }
+};
 </script>
