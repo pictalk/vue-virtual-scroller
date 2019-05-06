@@ -18,7 +18,7 @@
     "plugin"
   ],
   "license": "MIT",
-  "main": "dist/vue-virtual-scroller.umd.js",
+  "main": "dist/vue-virtual-scroller.esm.js",
   "module": "dist/vue-virtual-scroller.esm.js",
   "types": "types/index.d.ts",
   "unpkg": "dist/vue-virtual-scroller.min.js",
