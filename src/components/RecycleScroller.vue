@@ -118,16 +118,6 @@ export default {
       type: Boolean,
       default: false,
     },
-
-    listTag: {
-      type: String,
-      default: 'div',
-    },
-
-    itemTag: {
-      type: String,
-      default: 'div',
-    },
   },
 
   data () {
