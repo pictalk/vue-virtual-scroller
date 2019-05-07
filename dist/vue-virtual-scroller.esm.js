@@ -189,14 +189,28 @@ var props = {
     }
   },
 
-  listTag: {
+  /**
+   * The number of items back from the end of the list when a `end:threshold`
+   * event should be raised.
+   */
+  endingThreshold: {
+    type: Number,
+    default: 3
+  },
+
+  tag: {
     type: String,
     default: "div"
   },
 
+  listTag: {
+    type: String,
+    default: "ul"
+  },
+
   itemTag: {
     type: String,
-    default: "div"
+    default: "li"
   }
 };
 
@@ -223,7 +237,7 @@ if (typeof window !== "undefined") {
 var uid = 0;
 
 var RecycleScroller = { render: function render() {
-    var _vm = this;var _h = _vm.$createElement;var _c = _vm._self._c || _h;return _c('div', { directives: [{ name: "observe-visibility", rawName: "v-observe-visibility", value: _vm.handleVisibilityChange, expression: "handleVisibilityChange" }], staticClass: "vue-recycle-scroller", class: defineProperty({ ready: _vm.ready, 'page-mode': _vm.pageMode }, "direction-" + _vm.direction, true), on: { "&scroll": function scroll($event) {
+    var _vm = this;var _h = _vm.$createElement;var _c = _vm._self._c || _h;return _c(_vm.tag, { directives: [{ name: "observe-visibility", rawName: "v-observe-visibility", value: _vm.handleVisibilityChange, expression: "handleVisibilityChange" }], tag: "component", staticClass: "vue-recycle-scroller", class: defineProperty({ ready: _vm.ready, 'page-mode': _vm.pageMode }, "direction-" + _vm.direction, true), on: { "&scroll": function scroll($event) {
           return _vm.handleScroll($event);
         } } }, [_vm.$slots.before ? _c('div', { staticClass: "vue-recycle-scroller__slot" }, [_vm._t("before")], 2) : _vm._e(), _vm._v(" "), _c(_vm.listTag, { ref: "wrapper", tag: "component", staticClass: "vue-recycle-scroller__item-wrapper", style: defineProperty({}, _vm.direction === 'vertical' ? 'minHeight' : 'minWidth', _vm.totalSize + 'px') }, _vm._l(_vm.pool, function (view) {
       return _c(_vm.itemTag, { key: view.nr.id, tag: "component", staticClass: "vue-recycle-scroller__item-view", class: { hover: _vm.hoverKey === view.nr.key }, style: _vm.ready ? { transform: "translate" + (_vm.direction === 'vertical' ? 'Y' : 'X') + "(" + view.position + "px)" } : null, on: { "mouseenter": function mouseenter($event) {
@@ -385,7 +399,7 @@ var RecycleScroller = { render: function render() {
       pool.push(view);
       return view;
     },
-    unuseView: function unuseView(view) {
+    deactivateView: function deactivateView(view) {
       var fake = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
       var unusedViews = this.$_unusedViews;
@@ -418,12 +432,12 @@ var RecycleScroller = { render: function render() {
               continuous = _updateVisibleItems.continuous;
 
           // It seems sometimes chrome doesn't fire scroll event :/
-          // When non continous scrolling is ending, we force a refresh
+          // When non continuous scrolling is ending, we force a refresh
 
 
           if (!continuous) {
-            clearTimeout(_this2.$_refreshTimout);
-            _this2.$_refreshTimout = setTimeout(_this2.handleScroll, 100);
+            clearTimeout(_this2.$_refreshTimeout);
+            _this2.$_refreshTimeout = setTimeout(_this2.handleScroll, 100);
           }
         });
       }
@@ -532,7 +546,7 @@ var RecycleScroller = { render: function render() {
           unusedViews.clear();
           for (var _i = 0, l = pool.length; _i < l; _i++) {
             view = pool[_i];
-            this.unuseView(view);
+            this.deactivateView(view);
           }
         }
         this.$_continuous = continuous;
@@ -549,7 +563,7 @@ var RecycleScroller = { render: function render() {
 
             // Check if index is still in visible range
             if (view.nr.index === -1 || view.nr.index < startIndex || view.nr.index >= endIndex) {
-              this.unuseView(view);
+              this.deactivateView(view);
             }
           }
         }
@@ -572,7 +586,7 @@ var RecycleScroller = { render: function render() {
         view = views.get(key);
 
         if (!itemSize && !sizes[_i3].size) {
-          if (view) this.unuseView(view);
+          if (view) this.deactivateView(view);
           continue;
         }
 
@@ -598,7 +612,7 @@ var RecycleScroller = { render: function render() {
             v = unusedIndex.get(type) || 0;
             // Use existing view
             // We don't care if they are already used
-            // because we are not in continous scrolling
+            // because we are not in continuous scrolling
             if (unusedPool && v < unusedPool.length) {
               view = unusedPool[v];
               view.item = item;
@@ -609,7 +623,7 @@ var RecycleScroller = { render: function render() {
               unusedIndex.set(type, v + 1);
             } else {
               view = this.addView(pool, _i3, item, key, type);
-              this.unuseView(view, true);
+              this.deactivateView(view, true);
             }
             v++;
           }
@@ -629,6 +643,14 @@ var RecycleScroller = { render: function render() {
 
       this.$_startIndex = startIndex;
       this.$_endIndex = endIndex;
+
+      if (count > 0) {
+        if (endIndex === count) {
+          this.$emit("end");
+        } else if (count - endIndex <= this.endingThreshold) {
+          this.$emit("end:threshold", count - endIndex);
+        }
+      }
 
       if (this.emitUpdate) this.$emit("update", startIndex, endIndex);
 
@@ -734,7 +756,7 @@ var RecycleScroller = { render: function render() {
 };
 
 var DynamicScroller = { render: function render() {
-    var _vm = this;var _h = _vm.$createElement;var _c = _vm._self._c || _h;return _c('RecycleScroller', _vm._g(_vm._b({ ref: "scroller", attrs: { "items": _vm.itemsWithSize, "min-item-size": _vm.minItemSize, "direction": _vm.direction, "list-tag": _vm.listTag, "item-tag": _vm.itemTag, "key-field": "id" }, on: { "resize": _vm.onScrollerResize, "visible": _vm.onScrollerVisible }, scopedSlots: _vm._u([{ key: "default", fn: function fn(_ref) {
+    var _vm = this;var _h = _vm.$createElement;var _c = _vm._self._c || _h;return _c('RecycleScroller', _vm._g(_vm._b({ ref: "scroller", attrs: { "items": _vm.itemsWithSize, "min-item-size": _vm.minItemSize, "direction": _vm.direction, "tag": _vm.tag, "list-tag": _vm.listTag, "item-tag": _vm.itemTag, "key-field": "id" }, on: { "resize": _vm.onScrollerResize, "visible": _vm.onScrollerVisible }, scopedSlots: _vm._u([{ key: "default", fn: function fn(_ref) {
           var itemWithSize = _ref.item,
               index = _ref.index,
               active = _ref.active;
@@ -9618,7 +9640,7 @@ function registerComponents(Vue, prefix) {
 
 var plugin = {
   // eslint-disable-next-line no-undef
-  version: "1.0.3",
+  version: "1.1.0",
   install: function install(Vue, options) {
     var finalOptions = Object.assign({}, {
       installComponents: true,

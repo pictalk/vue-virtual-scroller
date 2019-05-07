@@ -31,6 +31,11 @@
     "dev": "cross-env NODE_ENV=development rollup --config build/rollup.config.es.js --watch",
     "lint": "eslint --ext .js,.vue src"
   },
+  "files": [
+      "src",
+      "dist",
+      "types"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pictalk/vue-virtual-scroller.git"
