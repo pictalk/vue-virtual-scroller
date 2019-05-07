@@ -459,9 +459,9 @@ export default {
 
       if (count > 0) {
         if (endIndex === count) {
-          this.$emit("end");
+          this.$emit("end", { startIndex, endIndex });
         } else if (count - endIndex <= this.endingThreshold) {
-          this.$emit("end:threshold", count - endIndex);
+          this.$emit("end:threshold", { startIndex, endIndex });
         }
       }
 
