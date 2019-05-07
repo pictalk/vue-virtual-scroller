@@ -454,10 +454,11 @@ export default {
         }
       }
 
+      let changed = this.$_endIndex !== endIndex;
       this.$_startIndex = startIndex;
       this.$_endIndex = endIndex;
 
-      if (count > 0) {
+      if (changed && count > 0) {
         if (endIndex === count) {
           this.$emit("end", { startIndex, endIndex });
         } else if (count - endIndex <= this.endingThreshold) {
