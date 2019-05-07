@@ -4,6 +4,7 @@
     :items="itemsWithSize"
     :min-item-size="minItemSize"
     :direction="direction"
+    :tag="tag"
     :list-tag="listTag"
     :item-tag="itemTag"
     key-field="id"
@@ -22,9 +23,11 @@
         }"
       />
     </template>
+
     <template slot="before">
       <slot name="before"/>
     </template>
+
     <template slot="after">
       <slot name="after"/>
     </template>

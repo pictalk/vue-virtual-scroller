@@ -15,14 +15,28 @@ export const props = {
     validator: value => ["vertical", "horizontal"].includes(value),
   },
 
-  listTag: {
+  /**
+   * The number of items back from the end of the list when a `end:threshold`
+   * event should be raised.
+   */
+  endingThreshold: {
+    type: Number,
+    default: 3,
+  },
+
+  tag: {
     type: String,
     default: "div",
   },
 
+  listTag: {
+    type: String,
+    default: "ul",
+  },
+
   itemTag: {
     type: String,
-    default: "div",
+    default: "li",
   },
 };
 

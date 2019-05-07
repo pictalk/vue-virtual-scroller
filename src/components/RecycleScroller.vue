@@ -1,5 +1,6 @@
 <template>
-  <div
+  <component
+    :is="tag"
     v-observe-visibility="handleVisibilityChange"
     class="vue-recycle-scroller"
     :class="{
@@ -38,7 +39,7 @@
     </div>
 
     <ResizeObserver @notify="handleResize"/>
-  </div>
+  </component>
 </template>
 
 <script>
@@ -202,7 +203,7 @@ export default {
       return view;
     },
 
-    unuseView(view, fake = false) {
+    deactivateView(view, fake = false) {
       const unusedViews = this.$_unusedViews;
       const type = view.nr.type;
       let unusedPool = unusedViews.get(type);
@@ -231,10 +232,10 @@ export default {
           const { continuous } = this.updateVisibleItems(false);
 
           // It seems sometimes chrome doesn't fire scroll event :/
-          // When non continous scrolling is ending, we force a refresh
+          // When non continuous scrolling is ending, we force a refresh
           if (!continuous) {
-            clearTimeout(this.$_refreshTimout);
-            this.$_refreshTimout = setTimeout(this.handleScroll, 100);
+            clearTimeout(this.$_refreshTimeout);
+            this.$_refreshTimeout = setTimeout(this.handleScroll, 100);
           }
         });
       }
@@ -354,7 +355,7 @@ export default {
           unusedViews.clear();
           for (let i = 0, l = pool.length; i < l; i++) {
             view = pool[i];
-            this.unuseView(view);
+            this.deactivateView(view);
           }
         }
         this.$_continuous = continuous;
@@ -377,7 +378,7 @@ export default {
               view.nr.index < startIndex ||
               view.nr.index >= endIndex
             ) {
-              this.unuseView(view);
+              this.deactivateView(view);
             }
           }
         }
@@ -398,7 +399,7 @@ export default {
         view = views.get(key);
 
         if (!itemSize && !sizes[i].size) {
-          if (view) this.unuseView(view);
+          if (view) this.deactivateView(view);
           continue;
         }
 
@@ -424,7 +425,7 @@ export default {
             v = unusedIndex.get(type) || 0;
             // Use existing view
             // We don't care if they are already used
-            // because we are not in continous scrolling
+            // because we are not in continuous scrolling
             if (unusedPool && v < unusedPool.length) {
               view = unusedPool[v];
               view.item = item;
@@ -435,7 +436,7 @@ export default {
               unusedIndex.set(type, v + 1);
             } else {
               view = this.addView(pool, i, item, key, type);
-              this.unuseView(view, true);
+              this.deactivateView(view, true);
             }
             v++;
           }
@@ -455,6 +456,14 @@ export default {
 
       this.$_startIndex = startIndex;
       this.$_endIndex = endIndex;
+
+      if (count > 0) {
+        if (endIndex === count) {
+          this.$emit("end");
+        } else if (count - endIndex <= this.endingThreshold) {
+          this.$emit("end:threshold", count - endIndex);
+        }
+      }
 
       if (this.emitUpdate) this.$emit("update", startIndex, endIndex);
 

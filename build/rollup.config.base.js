@@ -18,7 +18,7 @@ export default {
       browser: true,
     }),
     cjs(),
-    eslint(),
+    // eslint(),
     vue({
       css(style) {
         const file = require.resolve("vue-resize/dist/vue-resize.css");
