@@ -6,7 +6,12 @@ const config = Object.assign({}, base, {
     file: "dist/vue-virtual-scroller.esm.js",
     format: "es",
   },
-  external: ["scrollparent", "vue-observe-visibility", "vue-resize"],
+  external: [
+    ...base.external,
+    "scrollparent",
+    "vue-observe-visibility",
+    "vue-resize",
+  ],
 });
 
 export default config;
