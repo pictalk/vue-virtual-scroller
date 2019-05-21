@@ -158,8 +158,9 @@ Use the scoped slot to render each item in the list:
     :items="list"
     :item-size="32"
     key-field="id"
+    v-slot="{ item }"
   >
-    <div v-slot="{ item }" class="user">
+    <div class="user">
       {{ item.name }}
     </div>
   </RecycleScroller>
@@ -312,9 +313,11 @@ Example:
     Hey! I'm a message displayed before the items!
   </template>
 
-  <div v-slot="{ item }" class="user">
-    {{ item.name }}
-  </div>
+  <template v-slot="{ item }">
+    <div class="user">
+      {{ item.name }}
+    </div>
+  </template>
 </RecycleScroller>
 ```
 
